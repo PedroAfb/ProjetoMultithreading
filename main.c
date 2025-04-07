@@ -11,12 +11,12 @@
 pthread_mutex_t mutexFuel;
 pthread_cond_t condFuel;
 int globalFuel = 0;
-int charged_cars = N_CARS;
-sem_t bombas;
+int unfueled_cars_count = N_CARS;
+sem_t pumps;
 
 
 void* car(void* arg) {
-    sem_wait(&bombas);
+    sem_wait(&pumps);
     pthread_mutex_lock(&mutexFuel);
     int fuel_needed = rand() % 50 + 1;
 
@@ -27,11 +27,11 @@ void* car(void* arg) {
 
     globalFuel -= fuel_needed;
     printf("Car %ld getting fuel: %d, remaining fuel: %d\n", (long)arg, fuel_needed, globalFuel);
-    charged_cars--;
+    unfueled_cars_count--;
     pthread_mutex_unlock(&mutexFuel);
 
     sleep(2); // Simulate time taken to refuel
-    sem_post(&bombas);
+    sem_post(&pumps);
 }
 
 void* fuel_bomb(void* arg) {
@@ -39,7 +39,7 @@ void* fuel_bomb(void* arg) {
     {
         pthread_mutex_lock(&mutexFuel);
 
-        if (charged_cars <= 0) {
+        if (unfueled_cars_count <= 0) {
             pthread_mutex_unlock(&mutexFuel);
             break;
         }
@@ -61,15 +61,15 @@ int main(){
     pthread_t threads[N_CARS + 1];
     pthread_mutex_init(&mutexFuel, NULL);
     pthread_cond_init(&condFuel, NULL);
-    sem_init(&bombas, 0, N_FUEL_BOMBS);
+    sem_init(&pumps, 0, N_FUEL_BOMBS);
     srand(time(NULL));
 
-    for (int i = 0; i < N_CARS + 1; i++) {
-        if (i == N_CARS){
-            pthread_create(&threads[i], NULL, &fuel_bomb, NULL);
+    for (int i = 0; i <= N_CARS; i++) {
+        if (i != N_CARS){
+            pthread_create(&threads[i], NULL, &car, (void*)(long)i);
         }
         else {
-            pthread_create(&threads[i], NULL, &car, (void*)(long)i);
+            pthread_create(&threads[i], NULL, &fuel_bomb, NULL);
         }
         
     }
@@ -80,6 +80,6 @@ int main(){
     
     pthread_mutex_destroy(&mutexFuel);
     pthread_cond_destroy(&condFuel);
-    sem_destroy(&bombas);
+    sem_destroy(&pumps);
     return 0;
 }
