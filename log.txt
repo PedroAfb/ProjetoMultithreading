@@ -1,0 +1,108 @@
+[18:59:26.365] Number of cars: 30
+[18:59:26.365] Number of pumps: 12
+[18:59:26.366] ⛽ Car 0 is fueling at pump 0
+[18:59:26.366] ⛽ Car 1 is fueling at pump 1
+[18:59:26.366] ⛽ Car 2 is fueling at pump 2
+[18:59:26.366] ⛽ Car 3 is fueling at pump 3
+[18:59:26.366] ⛽ Car 4 is fueling at pump 4
+[18:59:26.366] ⛽ Car 5 is fueling at pump 5
+[18:59:26.366] ⛽ Car 7 is fueling at pump 7
+[18:59:26.366] ⛽ Car 6 is fueling at pump 6
+[18:59:26.366] ⛽ Car 8 is fueling at pump 8
+[18:59:26.366] ⛽ Car 9 is fueling at pump 9
+[18:59:26.366] ⛽ Car 10 is fueling at pump 10
+[18:59:26.366] ⛽ Car 11 is fueling at pump 11
+[18:59:26.366] Fuel bomb adding 600 fuel ...
+New total fuel: 600
+[18:59:31.367] Fuel bomb adding 600 fuel ...
+New total fuel: 1200
+[18:59:36.367] Fuel bomb adding 600 fuel ...
+New total fuel: 1744
+[18:59:41.367] Fuel bomb adding 600 fuel ...
+New total fuel: 2250
+[18:59:46.367] ⛽ Car 8 -> Got 10L | Remaining: 2152L
+[18:59:46.367] ⛽ Car 12 is fueling at pump 8
+[18:59:46.367] Fuel bomb adding 600 fuel ...
+New total fuel: 2752
+[18:59:48.366] ⛽ Car 5 -> Got 7L | Remaining: 2752L
+[18:59:48.366] ⛽ Car 13 is fueling at pump 5
+[18:59:49.366] ⛽ Car 4 -> Got 13L | Remaining: 2752L
+[18:59:49.366] ⛽ Car 14 is fueling at pump 4
+[18:59:51.367] Fuel bomb adding 600 fuel ...
+New total fuel: 3227
+[18:59:56.367] ⛽ Car 10 -> Got 10L | Remaining: 3191L
+[18:59:56.367] ⛽ Car 15 is fueling at pump 10
+[18:59:56.367] Fuel bomb adding 600 fuel ...
+New total fuel: 3791
+[19:00:01.368] Fuel bomb adding 600 fuel ...
+New total fuel: 4356
+[19:00:06.368] Fuel bomb adding 600 fuel ...
+New total fuel: 4906
+[19:00:09.366] ⛽ Car 0 -> Got 33L | Remaining: 4906L
+[19:00:09.366] ⛽ Car 16 is fueling at pump 0
+[19:00:11.368] Fuel bomb adding 600 fuel ...
+New total fuel: 5506
+[19:00:16.368] Fuel bomb adding 600 fuel ...
+New total fuel: 6075
+[19:00:20.366] ⛽ Car 7 -> Got 29L | Remaining: 6074L
+[19:00:20.366] ⛽ Car 17 is fueling at pump 7
+[19:00:20.366] ⛽ Car 16 -> Got 1L | Remaining: 6074L
+[19:00:20.366] ⛽ Car 18 is fueling at pump 0
+[19:00:21.368] Fuel bomb adding 600 fuel ...
+New total fuel: 6674
+[19:00:22.367] ⛽ Car 9 -> Got 41L | Remaining: 6674L
+[19:00:22.367] ⛽ Car 19 is fueling at pump 9
+[19:00:25.366] ⛽ Car 2 -> Got 39L | Remaining: 6674L
+[19:00:25.366] ⛽ Car 20 is fueling at pump 2
+[19:00:26.368] Fuel bomb adding 600 fuel ...
+New total fuel: 7274
+[19:00:27.366] ⛽ Car 1 -> Got 46L | Remaining: 7274L
+[19:00:27.366] ⛽ Car 21 is fueling at pump 1
+[19:00:31.368] Fuel bomb adding 600 fuel ...
+New total fuel: 7834
+[19:00:32.367] ⛽ Car 12 -> Got 36L | Remaining: 7834L
+[19:00:32.367] ⛽ Car 22 is fueling at pump 8
+[19:00:34.366] ⛽ Car 14 -> Got 35L | Remaining: 7834L
+[19:00:34.366] ⛽ Car 23 is fueling at pump 4
+[19:00:35.366] ⛽ Car 6 -> Got 49L | Remaining: 7834L
+[19:00:35.366] ⛽ Car 24 is fueling at pump 6
+[19:00:36.369] Fuel bomb adding 600 fuel ...
+New total fuel: 8434
+[19:00:37.366] ⛽ Car 3 -> Got 46L | Remaining: 8434L
+[19:00:37.366] ⛽ Car 25 is fueling at pump 3
+[19:00:40.367] ⛽ Car 19 -> Got 3L | Remaining: 8431L
+[19:00:40.367] ⛽ Car 26 is fueling at pump 9
+[19:00:41.367] ⛽ Car 11 -> Got 50L | Remaining: 8431L
+[19:00:41.367] ⛽ Car 27 is fueling at pump 11
+[19:00:41.369] Fuel bomb adding 600 fuel ...
+New total fuel: 9031
+[19:00:46.369] Fuel bomb adding 600 fuel ...
+New total fuel: 9530
+[19:00:47.366] ⛽ Car 17 -> Got 2L | Remaining: 9530L
+[19:00:47.366] ⛽ Car 28 is fueling at pump 7
+[19:00:47.367] ⛽ Car 15 -> Got 31L | Remaining: 9530L
+[19:00:47.367] ⛽ Car 29 is fueling at pump 10
+[19:00:50.366] ⛽ Car 20 -> Got 5L | Remaining: 9530L
+[19:00:51.369] Fuel bomb adding 600 fuel ...
+New total fuel: 10130
+[19:00:53.366] ⛽ Car 13 -> Got 50L | Remaining: 10130L
+[19:00:56.369] Fuel bomb adding 600 fuel ...
+New total fuel: 10686
+[19:00:59.367] ⛽ Car 26 -> Got 4L | Remaining: 10686L
+[19:01:01.369] Fuel bomb adding 600 fuel ...
+New total fuel: 11286
+[19:01:06.369] Fuel bomb adding 600 fuel ...
+New total fuel: 11835
+[19:01:07.367] ⛽ Car 27 -> Got 1L | Remaining: 11835L
+[19:01:09.367] ⛽ Car 23 -> Got 25L | Remaining: 11821L
+[19:01:10.366] ⛽ Car 18 -> Got 40L | Remaining: 11821L
+[19:01:11.369] Fuel bomb adding 600 fuel ...
+New total fuel: 12421
+[19:01:12.366] ⛽ Car 21 -> Got 30L | Remaining: 12421L
+[19:01:21.367] ⛽ Car 22 -> Got 39L | Remaining: 12396L
+[19:01:21.367] ⛽ Car 29 -> Got 14L | Remaining: 12396L
+[19:01:35.366] ⛽ Car 24 -> Got 40L | Remaining: 12396L
+[19:01:37.367] ⛽ Car 28 -> Got 25L | Remaining: 12396L
+[19:01:52.366] ⛽ Car 25 -> Got 50L | Remaining: 12396L
+[19:01:52.367] 
+🚦 Todos os carros abastecidos. Fim.
