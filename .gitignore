@@ -1,1 +1,7 @@
 output/
+.vscode/
+venv/
+resultados_execucao.csv
+grafico_tempo_execucao.png
+main
+requirements.txt

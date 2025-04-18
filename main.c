@@ -6,80 +6,72 @@
 #include <time.h>
 #include <semaphore.h>
 
-#define N_FUEL_BOMBS 2
-#define N_CARS 6
+// VARIÁVEIS GLOBAIS
 pthread_mutex_t mutexFuel;
 pthread_cond_t condFuel;
-int globalFuel = 0;
-int unfueled_cars_count = N_CARS;
+int globalFuel; // combustível suficiente
+int unfueled_cars_count;
 sem_t pumps;
 
-
 void* car(void* arg) {
-    sem_wait(&pumps);
+    long id = (long)arg;
+    sem_wait(&pumps);  // Aguarda bomba
+
     pthread_mutex_lock(&mutexFuel);
     int fuel_needed = rand() % 50 + 1;
 
-    while (globalFuel < fuel_needed) {
-        printf("Car %ld waiting for fuel\n", (long)arg);
-        pthread_cond_wait(&condFuel, &mutexFuel);
+    if (globalFuel >= fuel_needed) {
+        globalFuel -= fuel_needed;
+        printf("✅ Car %ld got %d fuel. Remaining fuel: %d\n", id, fuel_needed, globalFuel);
+    } else {
+        printf("❌ Car %ld could not get fuel! (Needed: %d, Available: %d)\n", id, fuel_needed, globalFuel);
     }
 
-    globalFuel -= fuel_needed;
-    printf("Car %ld getting fuel: %d, remaining fuel: %d\n", (long)arg, fuel_needed, globalFuel);
-    unfueled_cars_count--;
     pthread_mutex_unlock(&mutexFuel);
-
-    sleep(2); // Simulate time taken to refuel
-    sem_post(&pumps);
+    sleep(1);  // tempo proporcional
+    sem_post(&pumps);  // Libera bomba
+    return NULL;
 }
 
-void* fuel_bomb(void* arg) {
-    while (1)
-    {
-        pthread_mutex_lock(&mutexFuel);
-
-        if (unfueled_cars_count <= 0) {
-            pthread_mutex_unlock(&mutexFuel);
-            break;
-        }
-
-
-        int fuel_added = rand() % 50 + 50;
-        globalFuel += fuel_added;
-        printf("Fuel bomb adding %d fuel ...\nNew total fuel: %d\n", fuel_added, globalFuel);
-
-        pthread_cond_broadcast(&condFuel);
-        pthread_mutex_unlock(&mutexFuel);
-
-        sleep(5); // Simulate time to add fuel again
-
+int main(int argc, char* argv[]) {
+    if (argc != 3) {
+        printf("Usage: %s <number_of_cars> <number_of_fuel_pumps>\n", argv[0]);
+        return 1;
     }
-}
 
-int main(){
-    pthread_t threads[N_CARS + 1];
+    // Lê os parâmetros passados pela linha de comando
+    int N_CARS = atoi(argv[1]);
+    int N_FUEL_BOMBS = atoi(argv[2]);
+
+    if (N_CARS <= 0 || N_FUEL_BOMBS <= 0) {
+        printf("Error: number_of_cars and number_of_fuel_pumps must be greater than 0.\n");
+        return 1;
+    }
+
+    // Configurações iniciais
+    pthread_t threads[N_CARS];
     pthread_mutex_init(&mutexFuel, NULL);
-    pthread_cond_init(&condFuel, NULL);
     sem_init(&pumps, 0, N_FUEL_BOMBS);
+    
+    globalFuel = N_CARS * 100;  // combustível suficiente para todos os carros
+    unfueled_cars_count = N_CARS;
+
     srand(time(NULL));
 
-    for (int i = 0; i <= N_CARS; i++) {
-        if (i != N_CARS){
-            pthread_create(&threads[i], NULL, &car, (void*)(long)i);
-        }
-        else {
-            pthread_create(&threads[i], NULL, &fuel_bomb, NULL);
-        }
-        
+    // Criação das threads (carros)
+    for (int i = 0; i < N_CARS; i++) {
+        pthread_create(&threads[i], NULL, &car, (void*)(long)i);
     }
-    
-    for (int i = 0; i < N_CARS + 1; i++) {
+
+    // Espera as threads terminarem
+    for (int i = 0; i < N_CARS; i++) {
         pthread_join(threads[i], NULL);
     }
-    
+
+    // Liberação de recursos
     pthread_mutex_destroy(&mutexFuel);
-    pthread_cond_destroy(&condFuel);
     sem_destroy(&pumps);
+
+    printf("\n🚦 Todos os carros abastecidos. Fim.\n");
     return 0;
 }
