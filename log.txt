@@ -1,5 +1,5 @@
-Number of cars: 5
-Number of pumps: 6
+Number of cars: 10
+Number of pumps: 11
 ⛽ Car 0 is fueling at pump 0
 Car 0 waiting for fuel
 ⛽ Car 1 is fueling at pump 1

@@ -1,222 +1,233 @@
 #include <iostream>
 #include <ncurses.h>
-#include <regex>
-#include <string>
-#include <thread>
-#include <unistd.h>
 #include <vector>
-#include <fstream>
+#include <thread>
+#include <chrono>
+#include <atomic>
+#include <queue>
 
 using namespace std;
-int n_cars;
-int n_pumps;
+using namespace chrono;
 
+atomic<bool> running{true};
 
 class Coord {
-	public:
-		int x;
-		int y;
-
-		Coord(int _x, int _y) {
-			x = _x;
-			y = _y;
-		}
+public:
+    int x, y;
+    Coord(int _x, int _y) : x(_x), y(_y) {}
 };
 
 class Entity {
 public:
     Coord position;
     vector<string> sprite;
-
-    Entity(int _x0, int _y0)
-        : position(_x0, _y0), sprite() {}  // sprite começa vazio
-
+    Entity(int x, int y) : position(x, y) {}
+    
     void draw() {
-        for (int i = 0; i < sprite.size(); ++i) {
+        for (size_t i = 0; i < sprite.size(); i++) {
             mvprintw(position.y + i, position.x, sprite[i].c_str());
         }
     }
 };
 
 class Pump : public Entity {
-	public:
-		Pump(int _x0, int _y0) : Entity(_x0, _y0) {
+public:
+    int id;
+    bool occupied;
+    
+    Pump(int x, int y, int _id) : Entity(x, y), id(_id), occupied(false) {
         sprite = {
-					   "  _____   ",
-             " ['''''] ",
-             " ]_____[ ",
-						 " | === | ",
-						 " | GAS |>",
-						 " [_____] "
+            "  _____   ",
+            " ['''''] ",
+            " ]_____[ ",
+            " | === | ",
+            " | GAS |>",
+            " [_____] "
         };
     }
 };
 
 class Car : public Entity {
 public:
-		Pump* target_pump;
-		int driving_to_pump = 0;
-
-    Car(int _x0, int _y0) : Entity(_x0, _y0) {
+    int id;
+    Pump* target;
+    bool moving;
+    bool fueling;
+    system_clock::time_point start_time;
+    milliseconds delay;
+    
+    Car(int x, int y, int _id, milliseconds _delay) : 
+        Entity(x, y), id(_id), target(nullptr), 
+        moving(false), fueling(false), delay(_delay) {
+        start_time = system_clock::now();
         sprite = {
-					  "         ",
+            "         ",
             "   ___   ",
             "  ( 'o)  ",
             " (@\\./@) ",
             "  0   0  ",
-						"         "
+            "         "
         };
     }
-
-    void drive_downward() {
-        position.y++;
+    
+    bool ready() {
+        return system_clock::now() > start_time + delay;
     }
-		void drive_upward() {
-				position.y--;
-		}
-		void drive_right() {
-			  position.x++;
-		}
-		void draw() {
-			Entity::draw();
-		}
-	
-		void go_to_pump(Pump* pump) {
-				driving_to_pump = 1;
-				target_pump = pump; 
-		}
-
-		void drive_to_pump() {
-			if (driving_to_pump && position.x < target_pump->position.x+17)
-				drive_right();
-			else if (driving_to_pump && position.y < target_pump->position.y) {
-				drive_downward();
-			}
-			else {
-				driving_to_pump = 0;
-				target_pump = nullptr;
-			}
-		}
+    
+    void move_right() { position.x++; }
+    void move_down() { position.y++; }
+    
+    void assign_pump(Pump* pump) {
+        if (!ready()) return;
+        target = pump;
+        moving = true;
+        pump->occupied = true;
+    }
+    
+    void move_to_pump() {
+        if (!ready() || !moving || !target) return;
+        
+        if (position.x < target->position.x + 17) {
+            move_right();
+        } else if (position.y < target->position.y) {
+            move_down();
+        } else {
+            moving = false;
+            fueling = true;
+        }
+    }
 };
 
 vector<Pump*> pumps;
-vector<Car*> cars; 
+vector<Car*> cars;
+queue<int> car_queue;
 
-
-void draw_entrance(int x0) {	
-		mvprintw(7, x0, "/");
-		for(int i = x0 + 1; i < x0+10; i++) { 
-			mvprintw(6, i, " ");
-			mvprintw(7, i, " ");
-		}
-		mvprintw(7, x0 + 10, "\\");
-}
-
-void initialize_scene(int height, int width) {
-	for(int i = 0; i < height; i++) {	
-		mvprintw(i, 1, "|");
-		mvprintw(i+8, 20, "|");
-	}
-	mvprintw(0, 20, "\\");
-	mvprintw(8, 20, "/");
-	for(int j = 21; j < width; j++) {
-		mvprintw(0, j, "_");
-		mvprintw(7, j, "_");
-		mvprintw(6, j, "_");
-	}
-
-	for(int k = 38; k < 300; k+=35)
-		draw_entrance(k);
-}
-
-vector<Pump*> alocate_gas_pumps(int n_pumps) {
-	vector<Pump*> pumps;
-	for(int i = 0; i < n_pumps; i++) {
-		int pumps_per_row = 4;
-		int pump_x_margin = 35;
-		int pump_y_margin = 8;
-
-		int row = i / pumps_per_row;
-		int col = i % pumps_per_row;	
-		int x = col * pump_x_margin + 30;
-		int y = row * pump_y_margin + 10;		
-		
-		Pump *pump = new Pump(x,y);
-		pumps.push_back(pump);
-	}
-	return pumps;
-}
-
-vector<Car*> alocate_cars(int n_cars) {
-	vector<Car*> cars;
-	for(int i = 0; i < n_cars; i++) {
-		Car *car = new Car(0, 7);
-		cars.push_back(car);
-	}
-	return cars;
-}
-
-
-void run_script() {
-	this_thread::sleep_for(std::chrono::seconds(2));
-	static regex configCarsRegex(R"(Number of cars: (\d+))");
-	regex configPumpsRegex(R"(Number of pumps: (\d+))");
-	regex dispatchRegex(R"(Car (\d+) is fueling at pump (\d+))");
-	regex fuelInfoRegex(R"(Car (\d+) -> Got (\d+)L \| Remaining: (\d+)L)");
-	regex endMessageRegex(R"(Todos os carros abastecidos\. Fim\.)");
-	static smatch match;
-
-	string line;
-	static ifstream file("log.txt");
-	if (!file) {
-        return;
+void draw_entrance(int x) {
+    mvprintw(7, x, "/");
+    for (int i = x + 1; i < x + 10; i++) {
+        mvprintw(6, i, " ");
+        mvprintw(7, i, " ");
     }
-	if (!getline(file, line)) {
-        return;
-    }
-	if (regex_search(line, match, configCarsRegex)) {
-		n_cars = stoi(match[1]);
-	}
-	else if (regex_search(line, match, configPumpsRegex)) {
-		n_pumps = stoi(match[1]);
-	}
-	else if (regex_search(line, match, dispatchRegex)) {
-		int car = stoi(match[1]);
-		int pump = stoi(match[1]);
-		cars[car]->go_to_pump(pumps[pump]);
-	} 	
+    mvprintw(7, x + 10, "\\");
 }
 
+void draw_scene() {
+    // Limites laterais
+    for (int i = 0; i < 20; i++) {
+        mvprintw(i, 1, "|");
+        mvprintw(i + 8, 20, "|");
+    }
+    
+    // Teto e piso
+    for (int j = 21; j < 200; j++) {
+        mvprintw(0, j, "_");
+        mvprintw(7, j, "_");
+        mvprintw(6, j, "_");
+    }
+    
+    // Entradas
+    for (int k = 38; k < 180; k += 35) {
+        draw_entrance(k);
+    }
+}
 
+vector<Pump*> create_pumps(int count) {
+    vector<Pump*> result;
+    for (int i = 0; i < count; i++) {
+        int row = i / 4;
+        int col = i % 4;
+        int x = col * 35 + 30;
+        int y = row * 8 + 10;
+        result.push_back(new Pump(x, y, i));
+    }
+    return result;
+}
 
-int main(int argc, char** argv) {
-	thread(run_script).detach();
-	for (int i = 0; i < 2; i++) 
-		run_script();
-	initscr();
+vector<Car*> create_cars(int count) {
+    vector<Car*> result;
+    for (int i = 0; i < count; i++) {
+        result.push_back(new Car(0, 7, i, milliseconds(i * 2000))); // 2 segundos entre carros
+        car_queue.push(i);
+    }
+    return result;
+}
 
-	cars = alocate_cars(n_cars);
-	pumps = alocate_gas_pumps(n_pumps);
+void assign_pumps() {
+    while (!car_queue.empty()) {
+        int car_id = car_queue.front();
+        
+        if (cars[car_id]->ready()) {
+            for (auto& pump : pumps) {
+                if (!pump->occupied) {
+                    cars[car_id]->assign_pump(pump);
+                    car_queue.pop();
+                    break;
+                }
+            }
+            break;
+        } else {
+            break;
+        }
+    }
+}
 
+void run_simulation() {
+    while (running) {
+        assign_pumps();
+        
+        for (auto& car : cars) {
+            car->move_to_pump();
+        }
+        
+        this_thread::sleep_for(milliseconds(50));
+    }
+}
 
-	while(1){
-		initialize_scene(60, 500);
-		run_script();
-		for(Car* car : cars) {
-			car->draw();
-			car->drive_to_pump();
-		}
-		for(Pump* pump : pumps) {
-			pump->draw();
-		}
-
-		refresh();
-		napms(80);
-
-	}
+int main() {
 	
-	getch();
-	endwin();	
-
-	return 0;
+    initscr();
+    curs_set(0);
+    noecho();
+    keypad(stdscr, TRUE);
+    nodelay(stdscr, TRUE);
+    
+    // Criar 4 bombas e 4 carros
+    pumps = create_pumps(11);
+    cars = create_cars(10);
+    
+    thread sim_thread(run_simulation);
+    
+    while (running) {
+        clear();
+        draw_scene();
+        
+        // Desenhar bombas
+        for (auto& pump : pumps) {
+            pump->draw();
+        }
+        
+        // Desenhar carros
+        for (auto& car : cars) {
+            car->draw();
+        }
+        
+        refresh();
+        
+        // Verificar se o usuário quer sair
+        int ch = getch();
+        if (ch == 'q') {
+            running = false;
+        }
+        
+        this_thread::sleep_for(milliseconds(50));
+    }
+    
+    sim_thread.join();
+    
+    // Limpar memória
+    for (auto& car : cars) delete car;
+    for (auto& pump : pumps) delete pump;
+    
+    endwin();
+    return 0;
 }
