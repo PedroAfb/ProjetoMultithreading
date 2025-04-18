@@ -1,0 +1,22 @@
+Number of cars: 5
+Number of pumps: 6
+⛽ Car 0 is fueling at pump 0
+Car 0 waiting for fuel
+⛽ Car 1 is fueling at pump 1
+Car 1 waiting for fuel
+⛽ Car 2 is fueling at pump 2
+Car 2 waiting for fuel
+⛽ Car 3 is fueling at pump 3
+Car 3 waiting for fuel
+⛽ Car 4 is fueling at pump 4
+Car 4 waiting for fuel
+Fuel bomb adding 250 fuel ...
+New total fuel: 250
+⛽ Car 2 -> Got 11L | Remaining: 239L
+⛽ Car 0 -> Got 8L | Remaining: 231L
+⛽ Car 1 -> Got 48L | Remaining: 183L
+⛽ Car 3 -> Got 7L | Remaining: 176L
+⛽ Car 4 -> Got 31L | Remaining: 145L
+
+🚦 Todos os carros abastecidos. Fim.
+

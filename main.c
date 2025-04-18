@@ -40,7 +40,9 @@ void release_pump(int pump_index) {
 void* car(void* arg) {
     long id = (long)arg;
     sem_wait(&pumps);  // Aguarda bomba
-    int my_pump_index = occupy_pump(id);
+
+    int my_pump_index = occupy_pump(id);		
+		printf("⛽ Car %ld is fueling at pump %d\n", id, my_pump_index);
 
     pthread_mutex_lock(&mutexFuel);
     int fuel_needed = rand() % 50 + 1;
@@ -51,7 +53,7 @@ void* car(void* arg) {
     }
 
     globalFuel -= fuel_needed;
-    printf("⛽ Car %ld is fueling at pump %d → Got %dL | Remaining: %dL\n", id, my_pump_index, fuel_needed, globalFuel);
+    printf("⛽ Car %ld -> Got %dL | Remaining: %dL\n", id, fuel_needed, globalFuel);
     unfueled_cars_count--;
 
     pthread_mutex_unlock(&mutexFuel);
@@ -99,6 +101,9 @@ int main(int argc, char* argv[]) {
         printf("Error: number_of_cars and number_of_fuel_pumps must be greater than 0.\n");
         return 1;
     }
+
+		printf("Number of cars: %d\n", N_CARS);
+		printf("Number of pumps: %d\n", N_FUEL_BOMBS);
 
     // Configurações iniciais
     pthread_t threads[N_CARS + 1];
