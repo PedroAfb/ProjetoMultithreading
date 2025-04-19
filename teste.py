@@ -6,32 +6,14 @@ import seaborn as sns
 import pandas as pd
 import re
 from time import sleep
+import plotly.graph_objects as go  # Para gráficos interativos
 
 # Combinações de teste: (carros, bombas)
-testes = [
-    (500, 10),
-    (500, 50),
-    (500, 100),
-    (1000, 10),
-    (1000, 50),
-    (1000, 100),
-    (1000, 200),
-    (1500, 50),
-    (1500, 100),
-    (1500, 200),
-    (3186, 45),
-    (1253, 67),
-    (951, 89),
-    (2107, 32),
-    (3768, 21),
-    (1799, 54),
-    (2632, 47),
-    (1689, 66),
-    (4012, 90),
-    (1356, 55),
-    (2473, 44),
-    (1801, 63),
-]
+carros = list(range(25, 525, 25))
+bombas = list(range(25, 525, 25))
+
+# Gerando todas as combinações possíveis entre carros e bombas
+testes = [(c, b) for c in carros for b in bombas]
 
 resultados = []
 
@@ -43,7 +25,7 @@ for carros, bombas in testes:
 
     try:
         # Executa o programa com o comando 'time' e captura stdout + stderr
-        comando = ["/usr/bin/time", "-p", "./output/main", str(carros), str(bombas)]
+        comando = ["/usr/bin/time", "-p", "./main", str(carros), str(bombas)]
         processo = subprocess.run(comando, capture_output=True, text=True)
 
         # Captura a saída do stderr (onde o 'time -p' escreve)
@@ -63,37 +45,62 @@ for carros, bombas in testes:
 
     sleep(1)  # Pequena pausa entre testes
 
+
 # Transformando os dados em DataFrame
 df = pd.DataFrame(resultados, columns=["CARROS", "BOMBAS", "TEMPO_REAL"])
 
-# Plotando os gráficos
-fig = plt.figure(figsize=(12, 6))
+# --- Gráfico 3D Interativo ---
+tabela = df.pivot_table(
+    index='CARROS',
+    columns='BOMBAS',
+    values='TEMPO_REAL'
+)
 
-# Gráfico 3D
-ax = fig.add_subplot(121, projection='3d')
-x = df['CARROS']
-y = df['BOMBAS']
-z = df['TEMPO_REAL']
+x_vals = tabela.columns.values   # bombas
+y_vals = tabela.index.values     # carros
+z_vals = tabela.values           # matriz [carros × bombas]
 
-ax.plot_trisurf(x, y, z, cmap='viridis', edgecolor='none')
-ax.set_title('Tempo de Execução vs Carros e Bombas')
-ax.set_xlabel('Carros')
-ax.set_ylabel('Bombas')
-ax.set_zlabel('Tempo (s)')
+fig_3d = go.Figure()
+fig_3d.add_trace(go.Surface(
+    x=x_vals,
+    y=y_vals,
+    z=z_vals,
+    colorscale='Viridis'
+))
+fig_3d.update_layout(
+    title="Tempo de Execução vs Carros e Bombas",
+    scene=dict(
+        xaxis_title="Bombas",
+        yaxis_title="Carros",
+        zaxis_title="Tempo (s)"
+    )
+)
 
-# Heatmap
+# Salva o gráfico interativo como HTML
+fig_3d.write_html("grafico_tempo.html")
+print("Gráfico interativo salvo como 'grafico_tempo.html'.")
+
+# --- Heatmap Melhorado ---
+plt.figure(figsize=(10, 8))
 tabela_heatmap = df.pivot_table(index='CARROS', columns='BOMBAS', values='TEMPO_REAL')
-ax2 = plt.subplot(122)
-sns.heatmap(tabela_heatmap, annot=True, fmt=".1f", cmap='YlOrRd', cbar_kws={'label': 'Tempo (s)'}, ax=ax2)
-ax2.set_title('Mapa de Calor do Tempo de Execução')
-ax2.set_xlabel('Bombas de Combustível')
-ax2.set_ylabel('Quantidade de Carros')
 
+sns.heatmap(
+    tabela_heatmap,
+    annot=True,
+    fmt=".2f",
+    cmap="coolwarm",
+    linewidths=0.5,
+    cbar_kws={'label': 'Tempo (s)'}
+)
+
+plt.title("Mapa de Calor do Tempo de Execução", fontsize=16)
+plt.xlabel("Bombas de Combustível", fontsize=12)
+plt.ylabel("Quantidade de Carros", fontsize=12)
 plt.tight_layout()
 
-# Salva o gráfico em um arquivo PNG
-plt.savefig("grafico_tempo_execucao.png")
-print("Gráfico salvo como 'grafico_tempo_execucao.png'.")
+# Salva o heatmap como PNG
+plt.savefig("heatmap.png")
+print("Heatmap salvo como 'heatmap.png'.")
 
 # Salvando resultados em CSV
 df.to_csv("resultados_execucao.csv", index=False)
