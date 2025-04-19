@@ -17,6 +17,18 @@ int N_CARS;
 sem_t pumps;
 int* bomb_status = NULL;
 
+#include <sys/time.h>
+
+void log_with_timestamp() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    struct tm *t = localtime(&tv.tv_sec);
+
+    printf("[%02d:%02d:%02d.%03ld] ", 
+        t->tm_hour, t->tm_min, t->tm_sec, tv.tv_usec / 1000);
+		fflush(stdout);
+}
+
 int occupy_pump(long car_id) {
     int bomb_index = -1;
     pthread_mutex_lock(&mutexPump);
@@ -40,22 +52,30 @@ void release_pump(int pump_index) {
 void* car(void* arg) {
     long id = (long)arg;
     sem_wait(&pumps);  // Aguarda bomba
-    int my_pump_index = occupy_pump(id);
+
+    int my_pump_index = occupy_pump(id);		
+		log_with_timestamp();
+		printf("⛽ Car %ld is fueling at pump %d\n", id, my_pump_index);
+		sleep(10+my_pump_index%4*5);
 
     pthread_mutex_lock(&mutexFuel);
     int fuel_needed = rand() % 50 + 1;
 
     while (globalFuel < fuel_needed) {
+			log_with_timestamp();
         printf("Car %ld waiting for fuel\n", (long)arg);
         pthread_cond_wait(&condFuel, &mutexFuel);
     }
 
     globalFuel -= fuel_needed;
-    printf("⛽ Car %ld is fueling at pump %d → Got %dL | Remaining: %dL\n", id, my_pump_index, fuel_needed, globalFuel);
+		
+
     unfueled_cars_count--;
 
     pthread_mutex_unlock(&mutexFuel);
-    sleep(1);  // tempo proporcional
+    sleep(fuel_needed);  // tempo proporcional	
+		log_with_timestamp();
+    printf("⛽ Car %ld -> Got %dL | Remaining: %dL\n", id, fuel_needed, globalFuel);
     release_pump(my_pump_index);  // Libera bomba
     sem_post(&pumps);  // Libera bomba
     return NULL;
@@ -74,6 +94,8 @@ void* fuel_bomb(void* arg) {
 
         int fuel_added = N_FUEL_BOMBS*50;
         globalFuel += fuel_added;
+
+				log_with_timestamp();
         printf("Fuel bomb adding %d fuel ...\nNew total fuel: %d\n", fuel_added, globalFuel);
 
         pthread_cond_broadcast(&condFuel);
@@ -87,6 +109,8 @@ void* fuel_bomb(void* arg) {
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
+				
+				log_with_timestamp();
         printf("Usage: %s <number_of_cars> <number_of_fuel_pumps>\n", argv[0]);
         return 1;
     }
@@ -96,9 +120,17 @@ int main(int argc, char* argv[]) {
     N_FUEL_BOMBS = atoi(argv[2]);
 
     if (N_CARS <= 0 || N_FUEL_BOMBS <= 0) {
+				
+				log_with_timestamp();
         printf("Error: number_of_cars and number_of_fuel_pumps must be greater than 0.\n");
         return 1;
     }
+		
+		log_with_timestamp();
+		printf("Number of cars: %d\n", N_CARS);
+
+		log_with_timestamp();
+		printf("Number of pumps: %d\n", N_FUEL_BOMBS);
 
     // Configurações iniciais
     pthread_t threads[N_CARS + 1];
@@ -136,7 +168,8 @@ int main(int argc, char* argv[]) {
     pthread_mutex_destroy(&mutexPump);
     pthread_cond_destroy(&condFuel);
     sem_destroy(&pumps);
-
+		
+		log_with_timestamp();
     printf("\n🚦 Todos os carros abastecidos. Fim.\n");
     return 0;
 }
